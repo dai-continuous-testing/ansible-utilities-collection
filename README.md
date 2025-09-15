@@ -36,10 +36,13 @@ Manage Java application.properties files atomically, preventing race conditions.
 ansible-galaxy collection install git+https://github.com/dai-continuous-testing/ansible-utilities-collection.git
 ```
 
-### From Local Path
+### From Local Path (for development)
 ```bash
 ansible-galaxy collection install /path/to/ansible_collections/dai_continuous_testing/utilities
 ```
+
+### For Projects in this Repository
+The collection is already available at `ansible_collections/dai_continuous_testing/utilities/` and can be used directly.
 
 ## Requirements
 
