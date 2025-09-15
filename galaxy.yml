@@ -1,0 +1,19 @@
+namespace: dai_continuous_testing
+name: utilities
+version: 1.0.0
+readme: README.md
+authors:
+  - DAI Continuous Testing Team
+description: Collection of utility modules for DAI projects
+license:
+  - GPL-3.0-or-later
+tags:
+  - application_properties
+  - java
+  - configuration
+  - utilities
+dependencies: {}
+repository: https://github.com/dai-continuous-testing/ansible-utilities-collection
+documentation: https://github.com/dai-continuous-testing/ansible-utilities-collection
+homepage: https://github.com/dai-continuous-testing/ansible-utilities-collection
+issues: https://github.com/dai-continuous-testing/ansible-utilities-collection/issues
