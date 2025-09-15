@@ -4,29 +4,42 @@ This Ansible collection provides utility modules for DAI continuous testing proj
 
 ## Modules
 
-### application_properties
+| Module | Platform | Description | Documentation |
+|--------|----------|-------------|---------------|
+| **application_properties** | Cross-platform | Manage Java application.properties files atomically | [📖 Docs](docs/application_properties.md) |
+| **health_check** | Linux/Unix | HTTP health checks with retry logic | [📖 Docs](docs/health_check.md) |
+| **win_health_check** | Windows | HTTP health checks for Windows systems | [📖 Docs](docs/win_health_check.md) |
+| **win_drive_letter_to_disk_info** | Windows | Get disk space information by drive letter | [📖 Docs](docs/win_drive_letter_to_disk_info.md) |
 
-Manage Java application.properties files atomically, preventing race conditions.
+## Quick Start
 
-#### Features
-- Atomic file operations (no race conditions)
-- Automatic backup creation
-- Comment out existing properties
-- Managed blocks for clear separation
-- Cross-platform support
-
-#### Usage
+### Basic Usage Examples
 
 ```yaml
-- name: Update application properties
+# Update application properties
+- name: Configure application
   dai_continuous_testing.utilities.application_properties:
     path: /opt/app/config/application.properties
     properties:
       server.port: "8080"
       database.url: "jdbc:mysql://localhost/mydb"
-      app.name: "myapp"
-    backup: true
-    comment_existing: true
+
+# Health check on Linux
+- name: Check service health
+  dai_continuous_testing.utilities.health_check:
+    url: "http://localhost:8080/health"
+    max_retries: 10
+
+# Health check on Windows  
+- name: Check Windows service
+  dai_continuous_testing.utilities.win_health_check:
+    url: "http://localhost:8080/health"
+    max_retries: 10
+
+# Check Windows disk space
+- name: Verify disk space
+  dai_continuous_testing.utilities.win_drive_letter_to_disk_info:
+    drive_letter: "C:"
 ```
 
 ## Installation
@@ -46,7 +59,7 @@ The collection is already available at `ansible_collections/dai_continuous_testi
 
 ## How to Use in Other Projects
 
-### 1. Install the Collection
+### 1. 📦 Installation Methods
 
 #### Option A: Direct Installation
 ```bash
@@ -68,102 +81,45 @@ Then install with:
 ansible-galaxy collection install -r requirements.yml
 ```
 
-### 2. Use in Playbooks
+### 2. 🛠️ Basic Usage in Playbooks
 
-#### Basic Usage
 ```yaml
 ---
 - hosts: all
   tasks:
-    - name: Update application properties
+    - name: Configure application properties
       dai_continuous_testing.utilities.application_properties:
-        path: /opt/app/config/application.properties
-        properties:
-          server.port: "8080"
-          database.url: "jdbc:mysql://localhost/mydb"
-          app.name: "myapp"
-        backup: true
-        comment_existing: true
-```
-
-#### Advanced Usage with Variables
-```yaml
----
-- hosts: all
-  vars:
-    app_properties:
-      server.port: "{{ server_port | default('8080') }}"
-      database.url: "{{ db_url }}"
-      app.name: "{{ application_name }}"
-      logging.level.root: "INFO"
-      
-  tasks:
-    - name: Update application properties
-      dai_continuous_testing.utilities.application_properties:
-        path: "{{ installation_folder }}/config/application.properties"
+        path: "{{ app_config_path }}"
         properties: "{{ app_properties }}"
         backup: yes
-        comment_existing: yes
-        marker: "ANSIBLE MANAGED BLOCK - {{ application_name }} Properties"
+
+    - name: Wait for service to be healthy  
+      dai_continuous_testing.utilities.health_check:
+        url: "http://{{ inventory_hostname }}:{{ service_port }}/health"
+        max_retries: 20
+        delay_between_tries: 5
+      when: ansible_os_family != "Windows"
+
+    - name: Wait for Windows service to be healthy
+      dai_continuous_testing.utilities.win_health_check:
+        url: "http://{{ inventory_hostname }}:{{ service_port }}/health"
+        max_retries: 20
+        delay_between_tries: 5
+      when: ansible_os_family == "Windows"
+
+    - name: Check disk space (Windows only)
+      dai_continuous_testing.utilities.win_drive_letter_to_disk_info:
+        disks: "{{ ansible_facts.disks }}"
+        drive_letter: "C"
+      register: disk_info
+      when: ansible_os_family == "Windows"
 ```
 
-#### Multiple Properties Files
-```yaml
----
-- hosts: all
-  tasks:
-    - name: Update application properties
-      dai_continuous_testing.utilities.application_properties:
-        path: "{{ installation_folder }}/config/application.properties"
-        properties: "{{ application_properties }}"
-        backup: yes
-        comment_existing: yes
-        marker: "ANSIBLE MANAGED BLOCK - Application Properties"
+### 3. 📚 Detailed Documentation
 
-    - name: Update logback properties
-      dai_continuous_testing.utilities.application_properties:
-        path: "{{ installation_folder }}/config/logback.properties"
-        properties: "{{ logback_properties }}"
-        backup: yes
-        comment_existing: yes
-        marker: "ANSIBLE MANAGED BLOCK - Logback Properties"
-```
+Each module has comprehensive documentation with examples, parameters, and best practices:
 
-### 3. Use in Roles
-
-Add to your role's `tasks/main.yml`:
-```yaml
-- name: Configure application properties
-  dai_continuous_testing.utilities.application_properties:
-    path: "{{ config_file_path }}"
-    properties: "{{ role_properties }}"
-    backup: "{{ create_backup | default(true) }}"
-    comment_existing: "{{ comment_existing_props | default(true) }}"
-```
-
-### 4. Module Parameters
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `path` | string | yes | - | Path to the properties file |
-| `properties` | dict | yes | - | Dictionary of key-value pairs to set |
-| `backup` | boolean | no | `true` | Create backup before changes |
-| `comment_existing` | boolean | no | `true` | Comment out existing properties |
-| `marker` | string | no | "ANSIBLE MANAGED BLOCK - Application Properties" | Block marker text |
-
-### 5. Return Values
-
-The module returns:
-- `changed`: Whether the file was modified
-- `properties_added`: Number of properties added/updated
-- `properties_commented`: Number of existing properties commented out
-- `backup_file`: Path to backup file (if created)
-
-## Requirements
-
-- Ansible >= 2.9
-- Python >= 3.6
-
-## License
-
-GPL-3.0-or-later
+- **[application_properties](docs/application_properties.md)** - Complete guide for properties file management
+- **[health_check](docs/health_check.md)** - Linux/Unix health checking examples and use cases
+- **[win_health_check](docs/win_health_check.md)** - Windows health checking guide
+- **[win_drive_letter_to_disk_info](docs/win_drive_letter_to_disk_info.md)** - Windows disk space management

@@ -67,7 +67,7 @@ backup_file:
     description: Path to the backup file if created
     type: str
     returned: when backup=true
-    sample: /opt/app/config/application.properties.2025-09-13@12:34:56~
+    sample: /opt/app/config/application.properties.backup_20250915_123456
 properties_added:
     description: Number of properties added/updated
     type: int
@@ -89,8 +89,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 def backup_file(file_path):
     """Create a backup of the original file"""
-    timestamp = datetime.now().strftime("%Y-%m-%d@%H:%M:%S~")
-    backup_path = f"{file_path}.{timestamp}"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = f"{file_path}.backup_{timestamp}"
     shutil.copy2(file_path, backup_path)
     return backup_path
 
@@ -110,7 +110,7 @@ def write_properties_file(file_path, lines):
         f.writelines(lines)
 
 
-def comment_existing_properties(lines, properties_dict):
+def comment_existing_properties(lines, properties_dict, marker):
     """Comment out existing properties that match our keys"""
     commented_count = 0
     property_keys = list(properties_dict.keys())
@@ -119,6 +119,10 @@ def comment_existing_properties(lines, properties_dict):
     escaped_keys = [re.escape(key) for key in property_keys]
     pattern = re.compile(r'^(' + '|'.join(escaped_keys) + r')\s*=(.*)$')
     
+    # Create markers for this specific block
+    begin_marker = f"# BEGIN {marker}"
+    end_marker = f"# END {marker}"
+    
     new_lines = []
     in_ansible_block = False
     
@@ -126,11 +130,11 @@ def comment_existing_properties(lines, properties_dict):
         stripped_line = line.strip()
         
         # Check if we're entering or leaving an Ansible managed block
-        if "# BEGIN ANSIBLE MANAGED" in stripped_line:
+        if begin_marker in stripped_line:
             in_ansible_block = True
             new_lines.append(line)
             continue
-        elif "# END ANSIBLE MANAGED" in stripped_line:
+        elif end_marker in stripped_line:
             in_ansible_block = False
             new_lines.append(line)
             continue
@@ -178,9 +182,7 @@ def add_ansible_block(lines, properties_dict, marker):
     begin_marker = f"# BEGIN {marker}\n"
     end_marker = f"# END {marker}\n"
     
-    # Add a blank line before the block if the file doesn't end with one
-    if lines and not lines[-1].endswith('\n'):
-        lines.append('\n')
+    # Add a blank line before the block if the file doesn't end with a blank line
     if lines and lines[-1].strip():
         lines.append('\n')
     
@@ -233,7 +235,7 @@ def main():
 
     # Comment out existing properties if requested
     if comment_existing:
-        working_lines, commented_count = comment_existing_properties(working_lines, properties_dict)
+        working_lines, commented_count = comment_existing_properties(working_lines, properties_dict, marker)
         result['properties_commented'] = commented_count
     
     # Remove any existing Ansible managed block

@@ -1,17 +1,20 @@
 namespace: dai_continuous_testing
 name: utilities
-version: 1.0.0
+version: 1.1.0
 readme: README.md
 authors:
   - DAI Continuous Testing Team
-description: Collection of utility modules for DAI projects
+description: Collection of utility modules for DAI projects including application properties management, health checks, and Windows disk utilities
 license:
   - GPL-3.0-or-later
 tags:
   - application_properties
+  - health_check
+  - windows
   - java
   - configuration
   - utilities
+  - monitoring
 dependencies: {}
 repository: https://github.com/dai-continuous-testing/ansible-utilities-collection
 documentation: https://github.com/dai-continuous-testing/ansible-utilities-collection
