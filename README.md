@@ -1,6 +1,6 @@
 # DAI Continuous Testing Utilities Collection
 
-This Ansible collection provides utility modules for DAI continuous testing projects.
+This Ansible collection provides utility modules and filter plugins for DAI continuous testing projects.
 
 ## Modules
 
@@ -11,9 +11,17 @@ This Ansible collection provides utility modules for DAI continuous testing proj
 | **win_health_check** | Windows | HTTP health checks for Windows systems | [📖 Docs](docs/win_health_check.md) |
 | **win_drive_letter_to_disk_info** | Windows | Get disk space information by drive letter | [📖 Docs](docs/win_drive_letter_to_disk_info.md) |
 
+## Filter Plugins
+
+| Filter Plugin | Description | Example Usage |
+|---------------|-------------|---------------|
+| **os_utils** | OS family detection and normalization | `{{ ansible_os_family \| dai_continuous_testing.utilities.os_family_to_os_type }}` |
+| **string_utils** | String manipulation and formatting | `{{ app_name \| dai_continuous_testing.utilities.safe_key }}` |
+| **version_utils** | Version comparison and parsing | `{{ version \| dai_continuous_testing.utilities.version_compare('1.0.0', '>=') }}` |
+
 ## Quick Start
 
-### Basic Usage Examples
+### Module Usage Examples
 
 ```yaml
 # Update application properties
@@ -40,6 +48,24 @@ This Ansible collection provides utility modules for DAI continuous testing proj
 - name: Verify disk space
   dai_continuous_testing.utilities.win_drive_letter_to_disk_info:
     drive_letter: "C:"
+```
+
+### Filter Plugin Usage Examples
+
+```yaml
+# OS utilities
+- debug:
+    msg: "This is a {{ ansible_os_family | dai_continuous_testing.utilities.os_family_to_os_type }} system"
+
+# String utilities  
+- set_fact:
+    service_name: "{{ 'My Service Name!' | dai_continuous_testing.utilities.safe_key }}"
+    config_file: "{{ app_name | dai_continuous_testing.utilities.safe_filename }}"
+
+# Version utilities
+- debug:
+    msg: "Upgrade needed"
+  when: current_version | dai_continuous_testing.utilities.version_compare(required_version, '<')
 ```
 
 ## Installation
